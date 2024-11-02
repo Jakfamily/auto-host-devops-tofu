@@ -7,277 +7,291 @@ terraform {
   }
 }
 
-resource "proxmox_vm_qemu" "pfSense" {
-  name        = "pfSense-VM"
-  target_node = "pve"
-  onboot      = true
-  boot        = "order=scsi0;ide2;net0"
-  vmid        = 100
-
-  memory      = 2048
-
-  disk {
-    type     = "disk"
-    slot     = "scsi0"
-    size     = "32G"
-    storage  = "local-lvm"
-    iothread = true
-  }
-
-  disk {
-    type    = "cdrom"
-    slot    = "ide2"
-    storage = "local"
-    iso     = "local:iso/pfsense.iso"
-  }
-
-  scsihw = "virtio-scsi-pci"
-
-  network {
-    model  = "virtio"
-    bridge = "vmbr0"  # WAN
-  }
-
-  network {
-    model  = "virtio"
-    bridge = "vmbr1"  # LAN
-  }
-
-  network {
-    model  = "virtio"
-    bridge = "vmbr2"  # DMZ
-  }
-
-  lifecycle {
-    ignore_changes = [
-      disk[1],  # Ignore changes on CD/DVD
-    ]
-  }
+module "pfSense" {
+  source       = "./modules/pfsense"
+  vm_name      = "pfSense-VM"
+  node         = "pve"
+  vmid         = 100
+  memory       = 2048
+  disk_size    = "32G"
+  iso_storage  = "local"
+  iso_file     = "local:iso/pfsense.iso"
+  wan_bridge   = "vmbr0"
+  lan_bridge   = "vmbr1"
+  dmz_bridge   = "vmbr2"
 }
 
-resource "proxmox_vm_qemu" "pfSense-lan" {
-  name        = "pfSense-VM-lan"
-  target_node = "pve"
-  onboot      = true
-  boot        = "order=scsi0;ide2;net0"
-  vmid        = 101
+# resource "proxmox_vm_qemu" "pfSense" {
+#   name        = "pfSense-VM"
+#   target_node = "pve"
+#   onboot      = true
+#   boot        = "order=scsi0;ide2;net0"
+#   vmid        = 100
 
-  memory      = 2048
+#   memory      = 2048
 
-  disk {
-    type     = "disk"
-    slot     = "scsi0"
-    size     = "32G"
-    storage  = "local-lvm"
-    iothread = true
-  }
+#   disk {
+#     type     = "disk"
+#     slot     = "scsi0"
+#     size     = "32G"
+#     storage  = "local-lvm"
+#     iothread = true
+#   }
 
-  disk {
-    type    = "cdrom"
-    slot    = "ide2"
-    storage = "local"
-    iso     = "local:iso/debian12.iso"
-  }
+#   disk {
+#     type    = "cdrom"
+#     slot    = "ide2"
+#     storage = "local"
+#     iso     = "local:iso/pfsense.iso"
+#   }
 
-  scsihw = "virtio-scsi-pci"
-  network {
-    model  = "virtio"
-    bridge = "vmbr2"  # DMZ
-  }
+#   scsihw = "virtio-scsi-pci"
 
-  lifecycle {
-    ignore_changes = [
-      disk[1],  # Ignore changes on CD/DVD
-    ]
-  }
-}
+#   network {
+#     model  = "virtio"
+#     bridge = "vmbr0"  # WAN
+#   }
 
-resource "proxmox_vm_qemu" "traefik" {
-  name        = "traefik-VM"
-  target_node = "pve"
-  onboot      = true
-  boot        = "order=scsi0;ide2;net0"
-  vmid        = 110
+#   network {
+#     model  = "virtio"
+#     bridge = "vmbr1"  # LAN
+#   }
 
-  memory      = 2048
+#   network {
+#     model  = "virtio"
+#     bridge = "vmbr2"  # DMZ
+#   }
 
-  disk {
-    type     = "disk"
-    slot     = "scsi0"
-    size     = "20G"
-    storage  = "local-lvm"
-    iothread = true
-  }
+#   lifecycle {
+#     ignore_changes = [
+#       disk[1],  # Ignore changes on CD/DVD
+#     ]
+#   }
+# }
 
-  disk {
-    type    = "cdrom"
-    slot    = "ide2"
-    storage = "local"
-    iso     = "local:iso/debian12.iso"
-  }
+# resource "proxmox_vm_qemu" "pfSense-lan" {
+#   name        = "pfSense-VM-lan"
+#   target_node = "pve"
+#   onboot      = true
+#   boot        = "order=scsi0;ide2;net0"
+#   vmid        = 101
 
-  scsihw = "virtio-scsi-pci"
+#   memory      = 2048
 
-  network {
-    model  = "virtio"
-    bridge = "vmbr2"  # DMZ
-  }
+#   disk {
+#     type     = "disk"
+#     slot     = "scsi0"
+#     size     = "32G"
+#     storage  = "local-lvm"
+#     iothread = true
+#   }
 
-  lifecycle {
-    ignore_changes = [
-      disk[1],  # Ignore changes on CD/DVD
-    ]
-  }
-}
+#   disk {
+#     type    = "cdrom"
+#     slot    = "ide2"
+#     storage = "local"
+#     iso     = "local:iso/debian12.iso"
+#   }
 
-resource "proxmox_vm_qemu" "docker-host" {
-  name        = "docker-host-VM"
-  target_node = "pve"
-  onboot      = true
-  boot        = "order=scsi0;ide2;net0"
-  vmid        = 130
+#   scsihw = "virtio-scsi-pci"
+#   network {
+#     model  = "virtio"
+#     bridge = "vmbr2"  # DMZ
+#   }
 
-  memory      = 4096
+#   lifecycle {
+#     ignore_changes = [
+#       disk[1],  # Ignore changes on CD/DVD
+#     ]
+#   }
+# }
 
-  disk {
-    type     = "disk"
-    slot     = "scsi0"
-    size     = "60G"
-    storage  = "local-lvm"
-    iothread = true
-  }
+# resource "proxmox_vm_qemu" "traefik" {
+#   name        = "traefik-VM"
+#   target_node = "pve"
+#   onboot      = true
+#   boot        = "order=scsi0;ide2;net0"
+#   vmid        = 110
 
-  disk {
-    type    = "cdrom"
-    slot    = "ide2"
-    storage = "local"
-    iso     = "local:iso/debian12.iso"
-  }
+#   memory      = 2048
 
-  scsihw = "virtio-scsi-pci"
+#   disk {
+#     type     = "disk"
+#     slot     = "scsi0"
+#     size     = "20G"
+#     storage  = "local-lvm"
+#     iothread = true
+#   }
 
-  network {
-    model  = "virtio"
-    bridge = "vmbr2"  # DMZ
-  }
+#   disk {
+#     type    = "cdrom"
+#     slot    = "ide2"
+#     storage = "local"
+#     iso     = "local:iso/debian12.iso"
+#   }
 
-  lifecycle {
-    ignore_changes = [
-      disk[1],  # Ignore changes on CD/DVD
-    ]
-  }
-}
+#   scsihw = "virtio-scsi-pci"
 
-resource "proxmox_vm_qemu" "server-db" {
-  name        = "db-VM"
-  target_node = "pve"
-  onboot      = true
-  boot        = "order=scsi0;ide2;net0"
-  vmid        = 140
+#   network {
+#     model  = "virtio"
+#     bridge = "vmbr2"  # DMZ
+#   }
 
-  memory      = 2048
+#   lifecycle {
+#     ignore_changes = [
+#       disk[1],  # Ignore changes on CD/DVD
+#     ]
+#   }
+# }
 
-  disk {
-    type     = "disk"
-    slot     = "scsi0"
-    size     = "32G"
-    storage  = "local-lvm"
-    iothread = true
-  }
+# resource "proxmox_vm_qemu" "docker-host" {
+#   name        = "docker-host-VM"
+#   target_node = "pve"
+#   onboot      = true
+#   boot        = "order=scsi0;ide2;net0"
+#   vmid        = 130
 
-  disk {
-    type    = "cdrom"
-    slot    = "ide2"
-    storage = "local"
-    iso     = "local:iso/debian12.iso"
-  }
+#   memory      = 4096
 
-  scsihw = "virtio-scsi-pci"
+#   disk {
+#     type     = "disk"
+#     slot     = "scsi0"
+#     size     = "60G"
+#     storage  = "local-lvm"
+#     iothread = true
+#   }
 
-  network {
-    model  = "virtio"
-    bridge = "vmbr2"  # DMZ
-  }
+#   disk {
+#     type    = "cdrom"
+#     slot    = "ide2"
+#     storage = "local"
+#     iso     = "local:iso/debian12.iso"
+#   }
 
-  lifecycle {
-    ignore_changes = [
-      disk[1],  # Ignore changes on CD/DVD
-    ]
-  }
-}
+#   scsihw = "virtio-scsi-pci"
 
-resource "proxmox_vm_qemu" "devops" {
-  name        = "devops-VM"
-  target_node = "pve"
-  onboot      = true
-  boot        = "order=scsi0;ide2;net0"
-  vmid        = 150
+#   network {
+#     model  = "virtio"
+#     bridge = "vmbr2"  # DMZ
+#   }
 
-  memory      = 2048
+#   lifecycle {
+#     ignore_changes = [
+#       disk[1],  # Ignore changes on CD/DVD
+#     ]
+#   }
+# }
 
-  disk {
-    type     = "disk"
-    slot     = "scsi0"
-    size     = "80G"
-    storage  = "local-lvm"
-    iothread = true
-  }
+# resource "proxmox_vm_qemu" "server-db" {
+#   name        = "db-VM"
+#   target_node = "pve"
+#   onboot      = true
+#   boot        = "order=scsi0;ide2;net0"
+#   vmid        = 140
 
-  disk {
-    type    = "cdrom"
-    slot    = "ide2"
-    storage = "local"
-    iso     = "local:iso/debian12.iso"
-  }
+#   memory      = 2048
 
-  scsihw = "virtio-scsi-pci"
+#   disk {
+#     type     = "disk"
+#     slot     = "scsi0"
+#     size     = "32G"
+#     storage  = "local-lvm"
+#     iothread = true
+#   }
 
-  network {
-    model  = "virtio"
-    bridge = "vmbr2"  # DMZ
-  }
+#   disk {
+#     type    = "cdrom"
+#     slot    = "ide2"
+#     storage = "local"
+#     iso     = "local:iso/debian12.iso"
+#   }
 
-  lifecycle {
-    ignore_changes = [
-      disk[1],  # Ignore changes on CD/DVD
-    ]
-  }
-}
+#   scsihw = "virtio-scsi-pci"
 
-resource "proxmox_vm_qemu" "monitoring" {
-  name        = "monitoring-VM"
-  target_node = "pve"
-  onboot      = true
-  boot        = "order=scsi0;ide2;net0"
-  vmid        = 160
+#   network {
+#     model  = "virtio"
+#     bridge = "vmbr2"  # DMZ
+#   }
 
-  memory      = 2048
+#   lifecycle {
+#     ignore_changes = [
+#       disk[1],  # Ignore changes on CD/DVD
+#     ]
+#   }
+# }
 
-  disk {
-    type     = "disk"
-    slot     = "scsi0"
-    size     = "100G"
-    storage  = "local-lvm"
-    iothread = true
-  }
+# resource "proxmox_vm_qemu" "devops" {
+#   name        = "devops-VM"
+#   target_node = "pve"
+#   onboot      = true
+#   boot        = "order=scsi0;ide2;net0"
+#   vmid        = 150
 
-  disk {
-    type    = "cdrom"
-    slot    = "ide2"
-    storage = "local"
-    iso     = "local:iso/debian12.iso"
-  }
+#   memory      = 2048
 
-  scsihw = "virtio-scsi-pci"
+#   disk {
+#     type     = "disk"
+#     slot     = "scsi0"
+#     size     = "80G"
+#     storage  = "local-lvm"
+#     iothread = true
+#   }
 
-  network {
-    model  = "virtio"
-    bridge = "vmbr2"  # DMZ
-  }
+#   disk {
+#     type    = "cdrom"
+#     slot    = "ide2"
+#     storage = "local"
+#     iso     = "local:iso/debian12.iso"
+#   }
 
-  lifecycle {
-    ignore_changes = [
-      disk[1],  # Ignore changes on CD/DVD
-    ]
-  }
-}
+#   scsihw = "virtio-scsi-pci"
+
+#   network {
+#     model  = "virtio"
+#     bridge = "vmbr2"  # DMZ
+#   }
+
+#   lifecycle {
+#     ignore_changes = [
+#       disk[1],  # Ignore changes on CD/DVD
+#     ]
+#   }
+# }
+
+# resource "proxmox_vm_qemu" "monitoring" {
+#   name        = "monitoring-VM"
+#   target_node = "pve"
+#   onboot      = true
+#   boot        = "order=scsi0;ide2;net0"
+#   vmid        = 160
+
+#   memory      = 2048
+
+#   disk {
+#     type     = "disk"
+#     slot     = "scsi0"
+#     size     = "100G"
+#     storage  = "local-lvm"
+#     iothread = true
+#   }
+
+#   disk {
+#     type    = "cdrom"
+#     slot    = "ide2"
+#     storage = "local"
+#     iso     = "local:iso/debian12.iso"
+#   }
+
+#   scsihw = "virtio-scsi-pci"
+
+#   network {
+#     model  = "virtio"
+#     bridge = "vmbr2"  # DMZ
+#   }
+
+#   lifecycle {
+#     ignore_changes = [
+#       disk[1],  # Ignore changes on CD/DVD
+#     ]
+#   }
+# }
