@@ -1,5 +1,5 @@
 
-# Auto Host DevOps - Infrastructure Proxmox avec Terraform
+# Auto Host DevOps - Infrastructure Proxmox avec Opentofu
 
 Ce projet met en place une infrastructure as code pour gérer un environnement Proxmox, destiné à héberger divers services DevOps et de monitoring. Il utilise OpenTofu, un fork de Terraform, pour orchestrer les ressources sur Proxmox.
 
